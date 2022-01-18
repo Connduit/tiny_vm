@@ -3,6 +3,7 @@
 
 # Cmake products
 cmake-build-debug
+cmake-build-debug-wsl
 
 # Project generated object files,
 #   but keeping the hand-written ones
