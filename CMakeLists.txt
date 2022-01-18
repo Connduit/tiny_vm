@@ -28,7 +28,7 @@ add_executable(tiny_vm
         logger.c logger.h)
 
 target_include_directories(tiny_vm PRIVATE ${CJSON_INCLUDE_DIRS})
-target_link_libraries(tiny_vm PRIVATE cjson)
+target_link_libraries(tiny_vm PRIVATE cjson -lbsd)
 
 # Unit tests as C code
 add_executable(test_roll
