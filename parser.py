@@ -2,6 +2,7 @@ from lark import Lark, Transformer, v_args
 
 quack_grammar = """
     ?start: sum
+        | NAME "=" sum      -> assign_var
 
     ?sum: product
         | sum "+" product   -> add
@@ -13,6 +14,7 @@ quack_grammar = """
 
     ?atom: NUMBER           -> number
         | "-" atom          -> neg
+        | NAME              -> var
         | "(" sum ")"
 
     %import common.CNAME -> NAME
@@ -46,6 +48,20 @@ class CalculateTree(Transformer):
 
     def neg(self, x):
         return self.sub(self.number(0), x)
+
+    """
+    def assign_var(self, name, value):
+        self.vars[name] = value
+        return value
+        # return .asm code for this instead
+
+    def var(self, name):
+        try:
+            return self.vars[name]
+            # return .asm code for this instead
+        except KeyError:
+            raise Exception("Variable not found: %s" % name)
+    """
 
 
 calc_parser = Lark(quack_grammar, parser='lalr', transformer=CalculateTree())

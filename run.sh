@@ -1,7 +1,7 @@
 #!/bin/bash
 
-python ./assemble.py ./unit_tests/user.asm ./cmake-build-debug-wsl/sample.json
-cd cmake-build-debug-wsl/
-./tiny_vm
+python ./assemble.py ./tests/src/$1.asm ./tests/OBJ/$1.json
+cd tests/
+../bin/tiny_vm $1
 
 

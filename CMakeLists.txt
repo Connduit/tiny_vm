@@ -45,4 +45,4 @@ target_include_directories(test_roll
         PRIVATE ${CJSON_INCLUDE_DIRS},
         ${CMAKE_SOURCE_DIR}
         )
-target_link_libraries(test_roll PRIVATE cjson)
+target_link_libraries(test_roll PRIVATE cjson -lbsd)
