@@ -15,11 +15,11 @@ quack_grammar = """
 
     ?atom: NUMBER                   -> number
         | "-" atom                  -> neg
+        | NAME ".print()"            -> print_var
+        | "(" sum ")" ".print()"    ->print_val
         | NAME                      -> var
-        | NAME /\.([a-z])\w+\(\)(;)?/   -> print_var
-        | "(" sum ")" 
-        | NUMBER ";"                -> number
-    
+        | atom ";"
+        
 
     %import common.CNAME -> NAME
     %import common.NUMBER
@@ -27,13 +27,13 @@ quack_grammar = """
 
     %ignore WS_INLINE
 """
+#| NAME /\.([a-z])\w+\(\)/-> print_var
 
 
 @v_args(inline=True)    # Affects the signatures of the methods
 class CalculateTree(Transformer):
 
     def __init__(self, file):
-        #TODO: add var_type and var_value to self.vars?
         self.vars = {}
         self.file = file
 
@@ -41,14 +41,23 @@ class CalculateTree(Transformer):
         return f"""
         const {num}
         """
+    def print_val(self, name):
+        return fr"""{name}
+        call Int:print
+        const "\n"
+        call String:print
+        pop
+        """
 
-    def print_var(self, name, method):
-        ind = method.index("(")
-        m = method[1:ind]
-        return f"""
+    def print_var(self, name):
+        #ind = method.index("(")
+        #m = method[1:ind]
+        return fr"""
         load $
         load_field $:{name}
-        call {self.vars[name]}:{m}
+        call {self.vars[name]}:{"print"}
+        const "\n"
+        call String:print
         pop
         """
 
@@ -78,7 +87,11 @@ class CalculateTree(Transformer):
 
     def var(self, name):
         try:
-            return self.vars[name]
+            if self.vars[name]:
+                return f"""
+                load $
+                load_field $:{name}
+                """
         except KeyError:
             raise Exception("Variable not found: %s" % name)
 
