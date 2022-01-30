@@ -314,6 +314,71 @@ vm_Word method_String_equals[] = {
         {.intval = 1}  // consume other
 };
 
+/* String:less  */
+obj_ref native_String_less(void ) {
+    obj_ref this = vm_fp->obj;
+    assert_is_type(this, the_class_String);
+    obj_String this_string = (obj_String) this;
+    obj_ref other = (vm_fp - 1)->obj;
+    assert_is_type(other, the_class_String);
+    obj_String other_string = (obj_String) other;
+    log_debug("Comparing string values for order: %s < %s",
+              this_string->text, other_string->text);
+    if (strcmp(this_string->text, other_string->text) <= 0) {
+        return lit_true;
+    }
+
+    return lit_false;
+}
+
+vm_Word method_String_less[] = {
+        {.instr = vm_op_enter},
+        {.instr = vm_op_call_native},
+        {.native = native_String_less},
+        {.instr = vm_op_return},
+        {.intval = 1}
+};
+
+/* String:PLUS */
+obj_ref native_String_plus() {
+    obj_ref this = vm_fp->obj;
+    assert_is_type(this, the_class_String);
+    obj_String this_str = (obj_String) this;
+    obj_ref other = (vm_fp - 1)->obj;
+    assert_is_type(other, the_class_String);
+    obj_String other_str = (obj_String) other;
+
+    char *s = malloc((strlen(this_str->text) + strlen(other_str->text) + 1) * sizeof(char));
+    log_debug("this_str: %s, other_str: %s\n",
+              this_str->text, other_str->text);
+
+    strcpy(s, this_str->text);
+    strcat(s, other_str->text);
+    obj_ref concat_string = new_string(s);
+
+    return concat_string;
+}
+
+vm_Word method_String_plus[] = {
+        {.instr = vm_op_enter},
+        {.instr = vm_op_call_native},
+        {.native = native_String_plus},
+        {.instr = vm_op_return},
+        {.intval = 1}
+};
+/*
+vm_Word method_String_plus[] = {
+        {.instr = vm_op_enter},
+        {.instr = vm_op_load},
+        {.intval = 0},   // this
+        {.instr = vm_op_load},
+        {.intval = -1},  // other
+        {.instr = vm_op_call_native},
+        {.native = native_String_plus},
+        {.instr = vm_op_return},
+        {.intval = 1}  // consume other
+};*/
+
 
 /* The String Class (a singleton) */
 struct  class_struct  the_class_String_struct = {
@@ -325,7 +390,9 @@ struct  class_struct  the_class_String_struct = {
         method_String_constructor,     /* Constructor */
         method_String_string,
         method_String_print,
-        method_String_equals
+        method_String_equals,
+        method_String_less,
+        method_String_plus
 };
 
 class_ref the_class_String = &the_class_String_struct;
@@ -535,7 +602,6 @@ vm_Word method_int_constructor[] = {
 };
 
 /* Int:string */
-
 obj_ref native_Int_string(void ) {
     obj_ref this = vm_fp->obj;
     assert_is_type(this, the_class_Int);
@@ -647,8 +713,8 @@ obj_ref native_Int_minus(void ) {
     obj_ref difference = new_int(this_int->value - other_int->value);
     */
     log_debug("Subtracting integer values: %d - %d",
-              other_int->value, this_int->value);
-    obj_ref difference = new_int(other_int->value - this_int->value);
+              this_int->value, other_int->value);
+    obj_ref difference = new_int(this_int->value - other_int->value);
     return difference;
 }
 
@@ -693,14 +759,9 @@ obj_ref native_Int_divide(void ) {
     assert_is_type(other, the_class_Int);
     obj_Int other_int = (obj_Int) other;
 
-    /*
     log_debug("Dividing integer values: %d / %d",
               this_int->value, other_int->value);
     obj_ref quotient = new_int(this_int->value / other_int->value);
-    */
-    log_debug("Dividing integer values: %d / %d",
-              other_int->value, this_int->value);
-    obj_ref quotient = new_int(other_int->value / this_int->value);
     return quotient;
 }
 
