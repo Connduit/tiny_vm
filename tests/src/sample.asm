@@ -5,7 +5,6 @@
 enter
 const 42
 const 13
-roll 1
 call Int:plus
 store i
 load i

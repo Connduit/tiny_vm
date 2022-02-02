@@ -1,5 +1,12 @@
 from lark import Lark, Transformer, v_args
-import sys
+from os import path
+import argparse
+#import os
+
+
+arg_parser = argparse.ArgumentParser(description="Compiles Quack into ASM")
+arg_parser.add_argument("-f", "--filename", help="Quack Source File")
+args = arg_parser.parse_args()
 
 quack_grammar = """
     ?start: program
@@ -78,9 +85,11 @@ class qkParser:
         self.instr.append(f"call {val_type}:{op_name}")
 
     def build(self, filename):
-        output_file = open(f"./tests/src/{filename}.asm", "w")
+        #abs_path = os.path.abspath(os.getcwd())
+        class_name = path.splitext(filename)[0]
 
-        output_file.write(f".class {filename}:Obj\n\n")
+        output_file = open(f"./tests/src/{class_name}.asm", "w")
+        output_file.write(f".class {class_name}:Obj\n\n")
         output_file.write(".method $constructor\n")
         output_file.write(self.init_vars())
         output_file.write("enter\n")
@@ -90,6 +99,21 @@ class qkParser:
 
         output_file.write("return 0")
         output_file.close()
+
+        """
+        if os.path.exists(f"{abs_path}/tests/src"):
+            output_file = open(f"{abs_path}/tests/src/{class_name}.asm", "w")
+            output_file.write(f".class {class_name}:Obj\n\n")
+            output_file.write(".method $constructor\n")
+            output_file.write(self.init_vars())
+            output_file.write("enter\n")
+
+            for instr in self.instr:
+                output_file.write(f"{instr}\n")
+
+            output_file.write("return 0")
+            output_file.close()
+        """
 
 
 qk_Parser = qkParser()
@@ -113,7 +137,8 @@ class qkTransformer(Transformer):
         return token
 
     def add(self, x, y):
-        qk_Parser.method("plus", self.types[x], 1)
+        roll = 1 if x.type == "STRING" else 0
+        qk_Parser.method("plus", self.types[x], roll)
         return x
 
     def sub(self, x, y):
@@ -129,7 +154,7 @@ class qkTransformer(Transformer):
         return x
 
     def neg(self, x):
-        self.sub(self.const(0), "Int", 1)
+        self.sub(self.const(0), "NUMBER", 1)
         return x
 
     def assign_var(self, name, var_type, value):
@@ -149,12 +174,9 @@ class qkTransformer(Transformer):
 
 
 def main():
-    if len(sys.argv) != 2:
-        print(f"{sys.argv[0]} takes one .qk file as an argument")
-        exit(1)
 
-    sourceFilename = sys.argv[1].split(".")[0]
-    sourceFile = open(f"{sourceFilename}.qk", "r")
+    sourceFilename = vars(args)["filename"]
+    sourceFile = open(sourceFilename, "r")
 
     parser = Lark(quack_grammar, parser='lalr', transformer=qkTransformer())
     qk = parser.parse
