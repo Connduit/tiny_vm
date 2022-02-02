@@ -19,11 +19,11 @@ quack_grammar = """
         | assignment NEWLINE
         
     ?assignment: NAME ":" type "=" func -> assign_var
-        
+    
     ?type: NAME
         
     ?func: sum
-        | func "." NAME "()"        -> func_call
+        | sum "." NAME "()"        -> func_call
         
     ?sum: product
         | sum "+" product           -> add
@@ -34,8 +34,8 @@ quack_grammar = """
         | product "/" atom          -> div
 
     ?atom: NUMBER                   -> number
+        | NAME                      -> var
         | STRING                    -> string
-        | NAME                      -> get_var
         | "-" atom                  -> neg
         | "(" sum ")" 
 
@@ -162,7 +162,7 @@ class qkTransformer(Transformer):
         qk_Parser.store_var(name, value)
         return name
 
-    def get_var(self, name):
+    def var(self, name):
         try:
             qk_Parser.load_var(name)
             return qk_Parser.get_var(name)
@@ -171,6 +171,7 @@ class qkTransformer(Transformer):
 
     def func_call(self, val, func):
         qk_Parser.method(func, self.types[val])
+        return val
 
 
 def main():

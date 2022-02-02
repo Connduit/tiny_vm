@@ -209,6 +209,8 @@ const class_ref the_class_Obj = &the_class_Obj_struct;
  *    STRING
  *    PRINT
  *    EQUALS
+ *    LESS
+ *    PLUS
  *    FIXME: (Incomplete for now.)
  * ==================
  */
@@ -366,18 +368,6 @@ vm_Word method_String_plus[] = {
         {.instr = vm_op_return},
         {.intval = 1}
 };
-/*
-vm_Word method_String_plus[] = {
-        {.instr = vm_op_enter},
-        {.instr = vm_op_load},
-        {.intval = 0},   // this
-        {.instr = vm_op_load},
-        {.intval = -1},  // other
-        {.instr = vm_op_call_native},
-        {.native = native_String_plus},
-        {.instr = vm_op_return},
-        {.intval = 1}  // consume other
-};*/
 
 
 /* The String Class (a singleton) */
@@ -572,6 +562,9 @@ obj_ref nothing = (obj_ref) &nothing_struct;
  *    Those of Obj
  *    PLUS
  *    LESS
+ *    MINUS
+ *    TIMES
+ *    DIVIDE
  *    (add more later)
  * =================
  */
