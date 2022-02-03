@@ -1,11 +1,10 @@
 from lark import Lark, Transformer, v_args
 from os import path
 import argparse
-#import os
 
 
 arg_parser = argparse.ArgumentParser(description="Compiles Quack into ASM")
-arg_parser.add_argument("-f", "--filename", help="Quack Source File")
+arg_parser.add_argument("-f", "--filename", required=True, help="Quack Source File")
 args = arg_parser.parse_args()
 
 quack_grammar = """
@@ -69,10 +68,7 @@ class qkParser:
         return ret
 
     def load_var(self, var):
-        try:
-            self.instr.append(f"load {var}")
-        except KeyError:
-            raise Exception("Variable not found: %s" % var)
+        self.instr.append(f"load {var}")
 
     def store_var(self, name, value):
         self.vars[name] = value
@@ -85,7 +81,6 @@ class qkParser:
         self.instr.append(f"call {val_type}:{op_name}")
 
     def build(self, filename):
-        #abs_path = os.path.abspath(os.getcwd())
         class_name = path.splitext(filename)[0]
 
         output_file = open(f"./tests/src/{class_name}.asm", "w")
@@ -100,21 +95,6 @@ class qkParser:
         output_file.write("return 0")
         output_file.close()
 
-        """
-        if os.path.exists(f"{abs_path}/tests/src"):
-            output_file = open(f"{abs_path}/tests/src/{class_name}.asm", "w")
-            output_file.write(f".class {class_name}:Obj\n\n")
-            output_file.write(".method $constructor\n")
-            output_file.write(self.init_vars())
-            output_file.write("enter\n")
-
-            for instr in self.instr:
-                output_file.write(f"{instr}\n")
-
-            output_file.write("return 0")
-            output_file.close()
-        """
-
 
 qk_Parser = qkParser()
 
@@ -123,7 +103,6 @@ qk_Parser = qkParser()
 class qkTransformer(Transformer):
 
     def __init__(self):
-        self.parser = qkParser()
         self.types = dict()
 
     def number(self, token):
@@ -137,7 +116,7 @@ class qkTransformer(Transformer):
         return token
 
     def add(self, x, y):
-        roll = 1 if x.type == "STRING" else 0
+        roll = 1 if self.types[x] == "String" else 0
         qk_Parser.method("plus", self.types[x], roll)
         return x
 
@@ -177,8 +156,12 @@ class qkTransformer(Transformer):
 def main():
 
     sourceFilename = vars(args)["filename"]
-    sourceFile = open(sourceFilename, "r")
+    if not path.exists(sourceFilename):
+        print("Not a valid file or path to file")
+        arg_parser.print_usage()
+        exit()
 
+    sourceFile = open(sourceFilename, "r")
     parser = Lark(quack_grammar, parser='lalr', transformer=qkTransformer())
     qk = parser.parse
     qk(sourceFile.read())
