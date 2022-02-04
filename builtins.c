@@ -326,11 +326,12 @@ obj_ref native_String_less(void ) {
     obj_String other_string = (obj_String) other;
     log_debug("Comparing string values for order: %s < %s",
               this_string->text, other_string->text);
-    if (strcmp(this_string->text, other_string->text) <= 0) {
+    if (strcmp(this_string->text, other_string->text) < 0) {
         return lit_true;
+    } else {
+        return lit_false;
     }
 
-    return lit_false;
 }
 
 vm_Word method_String_less[] = {
@@ -445,7 +446,7 @@ vm_Word method_Boolean_string[] = {
 
 /* The Boolean Class (a singleton) */
 struct  class_struct  the_class_Boolean_struct = {
-        .header = {.class_name = "Boolean",
+        .header = {.class_name = "Bool",
                    .healthy_class_tag = HEALTHY,
                    .super = the_class_Obj,
                    .n_fields = 0,
@@ -766,6 +767,25 @@ vm_Word method_Int_divide[] = {
         {.intval = 1}
 };
 
+/* Int:negate (new native_method) */
+obj_ref native_Int_negate(void ) {
+    obj_ref this = vm_fp->obj;
+    assert_is_type(this, the_class_Int);
+    obj_Int this_int = (obj_Int) this;
+    log_debug("Negating integer value: %d",
+              this_int->value);
+    obj_ref neg = new_int(-this_int->value);
+    return neg;
+}
+
+vm_Word method_Int_negate[] = {
+        {.instr = vm_op_enter},
+        {.instr = vm_op_call_native},
+        {.native = native_Int_negate},
+        {.instr = vm_op_return},
+        {.intval = 0}
+};
+
 /* The Int Class (a singleton) */
 struct  class_struct  the_class_Int_struct = {
         .header = {
@@ -784,7 +804,8 @@ struct  class_struct  the_class_Int_struct = {
                 method_Int_plus,
                 method_Int_minus,
                 method_Int_times,
-                method_Int_divide
+                method_Int_divide,
+                method_Int_negate
         }
  };
 

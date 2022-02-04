@@ -3,19 +3,20 @@ from os import path
 import argparse
 
 
-arg_parser = argparse.ArgumentParser(description="Compiles Quack into ASM")
-arg_parser.add_argument("-f", "--filename", required=True, help="Quack Source File")
-args = arg_parser.parse_args()
+def cli():
+    arg_parser = argparse.ArgumentParser(description="Compiles Quack into ASM")
+    arg_parser.add_argument("-f", "--filename", required=True, help="Quack Source File")
+    #args = arg_parser.parse_args()
+    return arg_parser
+
 
 quack_grammar = """
     ?start: program
         
-    ?program: line+
+    ?program: line*
     
-    ?line: func ";" NEWLINE
-        | func NEWLINE
-        | assignment ";" NEWLINE
-        | assignment NEWLINE
+    ?line: func ";" 
+        | assignment ";" 
         
     ?assignment: NAME ":" type "=" func -> assign_var
     
@@ -37,7 +38,11 @@ quack_grammar = """
         | STRING                    -> string
         | "-" atom                  -> neg
         | "(" sum ")" 
-
+        | "true"                    -> lit_true
+        | "false"                   -> lit_false
+        | "none"                    -> lit_nothing
+        
+    
     %import common.CNAME -> NAME
     %import common.NUMBER
     %import common.WS_INLINE
@@ -45,9 +50,16 @@ quack_grammar = """
     %import common.ESCAPED_STRING -> STRING
 
     %ignore WS_INLINE
+    %ignore NEWLINE
 """
 
+#MLC: /\/\*(.|\n)+\*\//x
+#COMMENT: /\/\/[^\n]*/x NEWLINE
+#%ignore MLC
+#%ignore COMMENT
 
+
+# TODO: make a subclass from qkParser for every rule in the grammar
 class qkParser:
     def __init__(self):
         self.vars = dict()
@@ -74,7 +86,7 @@ class qkParser:
         self.vars[name] = value
         self.instr.append(f"store {name}")
 
-    def method(self, op_name, val_type, roll=0):
+    def method(self, op_name, val_type, roll=False):
         if roll:
             self.instr.append("roll 1")
 
@@ -116,7 +128,7 @@ class qkTransformer(Transformer):
         return token
 
     def add(self, x, y):
-        roll = 1 if self.types[x] == "String" else 0
+        roll = True if self.types[x] == "String" else False
         qk_Parser.method("plus", self.types[x], roll)
         return x
 
@@ -133,7 +145,7 @@ class qkTransformer(Transformer):
         return x
 
     def neg(self, x):
-        self.sub(self.const(0), "NUMBER", 1)
+        qk_Parser.method("negate", self.types[x])
         return x
 
     def assign_var(self, name, var_type, value):
@@ -152,13 +164,28 @@ class qkTransformer(Transformer):
         qk_Parser.method(func, self.types[val])
         return val
 
+    def lit_true(self):
+        self.types["true"] = "Bool"
+        qk_Parser.const("true")
+        return "true"
+
+    def lit_false(self):
+        self.types["false"] = "Bool"
+        qk_Parser.const("false")
+        return "false"
+
+    def lit_nothing(self):
+        self.types["none"] = "Nothing"
+        qk_Parser.const("none")
+        return "none"
+
 
 def main():
-
-    sourceFilename = vars(args)["filename"]
+    args = cli()
+    sourceFilename = vars(args.parse_args())["filename"]
     if not path.exists(sourceFilename):
         print("Not a valid file or path to file")
-        arg_parser.print_usage()
+        args.print_usage()
         exit()
 
     sourceFile = open(sourceFilename, "r")
