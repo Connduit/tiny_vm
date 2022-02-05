@@ -48,15 +48,14 @@ quack_grammar = """
     %import common.WS_INLINE
     %import common.NEWLINE
     %import common.ESCAPED_STRING -> STRING
+    
+    COMMENT: "//" /[^\n]*/x
+        | "/*" /(.|\n)+/xms "*/"
 
     %ignore WS_INLINE
     %ignore NEWLINE
+    %ignore COMMENT
 """
-
-#MLC: /\/\*(.|\n)+\*\//x
-#COMMENT: /\/\/[^\n]*/x NEWLINE
-#%ignore MLC
-#%ignore COMMENT
 
 
 # TODO: make a subclass from qkParser for every rule in the grammar
