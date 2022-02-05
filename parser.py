@@ -50,7 +50,7 @@ quack_grammar = """
     %import common.ESCAPED_STRING -> STRING
     
     COMMENT: "//" /[^\n]*/x
-        | "/*" /(.|\n)+/xms "*/"
+        | "/*" /(.)*/xs "*/"
 
     %ignore WS_INLINE
     %ignore NEWLINE
