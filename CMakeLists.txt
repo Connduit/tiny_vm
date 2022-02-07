@@ -3,12 +3,9 @@ project(tiny_vm C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)  # No apparent effect
 
-<<<<<<< HEAD
 # Very simple JSON library for loader
 find_package(cJSON CONFIG REQUIRED)
 
-=======
->>>>>>> upstream/main
 add_custom_command(
         OUTPUT  ${CMAKE_SOURCE_DIR}/vm_code_table.c
         COMMAND python3 ${CMAKE_SOURCE_DIR}/build_bytecode_table.py
@@ -33,12 +30,9 @@ add_executable(tiny_vm
         vm_loader.c vm_loader.h
         logger.c logger.h)
 
-<<<<<<< HEAD
 target_include_directories(tiny_vm PRIVATE ${CJSON_INCLUDE_DIRS})
 target_link_libraries(tiny_vm PRIVATE cjson -lbsd)
 
-=======
->>>>>>> upstream/main
 # Unit tests as C code
 add_executable(test_roll
         cjson/cJSON.c cjson/cJSON.h
