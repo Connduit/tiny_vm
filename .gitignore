@@ -7,17 +7,13 @@
 
 # Cmake products
 cmake-build-debug
-<<<<<<< HEAD
 cmake-build-debug-wsl
-=======
 CMakeFiles
 CMakeCache.txt
 Makefile
 bin/test_roll
 bin/tiny_vm
 cmake_install.cmake
-
->>>>>>> upstream/main
 
 # Project generated object files,
 #   but keeping the hand-written ones
