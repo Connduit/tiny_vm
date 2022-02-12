@@ -59,82 +59,7 @@ class qkParser:
         output_file.close()
 
 
-qk_Parser = qkParser()
-
-
-@v_args(inline=True)    # Affects the signatures of the methods
-class qkTransformer(Transformer):
-
-    def __init__(self):
-        self.types = dict()
-
-    def number(self, token):
-        self.types[token] = "Int"
-        qk_Parser.const(token)
-        return token
-
-    def string(self, token):
-        self.types[token] = "String"
-        qk_Parser.const(token)
-        return token
-
-    def add(self, x, y):
-        roll = True if self.types[x] == "String" else False
-        qk_Parser.method("plus", self.types[x], roll)
-        return x
-
-    def sub(self, x, y):
-        qk_Parser.method("minus", self.types[x], 1)
-        return x
-
-    def mul(self, x, y):
-        qk_Parser.method("times", self.types[x])
-        return x
-
-    def div(self, x, y):
-        qk_Parser.method("divide", self.types[x], 1)
-        return x
-
-    def neg(self, x):
-        qk_Parser.method("negate", self.types[x])
-        return x
-
-    def assign_var(self, name, var_type, value):
-        self.types[name] = var_type
-        qk_Parser.store_var(name, value)
-        return name
-
-    def var(self, name):
-        try:
-            qk_Parser.load_var(name)
-            return qk_Parser.get_var(name)
-        except KeyError:
-            raise Exception("Variable not found: %s" % name)
-
-    def m_call(self, val, func):
-        qk_Parser.method(func, self.types[val])
-        return val
-
-    def lit_true(self):
-        self.types["true"] = "Bool"
-        qk_Parser.const("true")
-        return "true"
-
-    def lit_false(self):
-        self.types["false"] = "Bool"
-        qk_Parser.const("false")
-        return "false"
-
-    def lit_nothing(self):
-        self.types["none"] = "Nothing"
-        qk_Parser.const("none")
-        return "none"
-
-    def if_block(self):
-        pass
-
-    def while_block(self):
-        pass
+#qk_Parser = qkParser()
 
 
 @v_args(tree=True)
@@ -156,13 +81,72 @@ class ASTBuilder(Transformer):
         tree.children.insert(0, Token("NAME", "divide"))
         return tree
 
-    def lit_num(self, tree):
-        tree.children.insert(0, Token("NUMBER", "divide"))
+    def if_block(self, tree):
         return tree
+
+    def while_block(self, tree):
+        return tree
+
+    def cond_and(self, tree):
+        return tree
+
+    def cond_or(self, tree):
+        return tree
+
+    def cond_not(self, tree):
+        return tree
+
+    def m_equals(self, tree):
+        return tree
+
+    def m_notequal(self, tree):
+        return tree
+
+    def m_less(self, tree):
+        return tree
+
+    def m_more(self, tree):
+        return tree
+
+    def m_atmost(self, tree):
+        return tree
+
+    def m_atleast(self, tree):
+        return tree
+
+    def m_call(self, tree):
+        return tree
+
+    def m_args(self, tree):
+        return tree
+
+    def lit_true(self, tree):
+        return tree
+
+    def lit_false(self, tree):
+        return tree
+
+    def lit_none(self, tree):
+        return tree
+
+    def lit_num(self, tree):
+        return tree
+
+    def lit_str(self, tree):
+        return tree
+
+    def m_neg(self, tree):
+        return tree
+
+    def var(self, tree):
+        return tree
+
+
 
 
 def main():
     # TODO: raw expressions should be immediately popped from the stack as they will never be used
+    # TODO: add != operator to builtins.c
     args = cli()
     sourceFilename = vars(args.parse_args())["filename"]
     if not path.exists(sourceFilename):
