@@ -4,6 +4,8 @@
 # IDE cruft
 .idea
 
+__pycache__/
+
 
 # Cmake products
 cmake-build-debug

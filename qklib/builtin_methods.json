@@ -1,0 +1,208 @@
+{
+  "Obj": {
+    "super": "Obj",
+    "methods": {
+      "$constructor": {
+        "params": [],
+        "ret": "Nothing"
+      },
+      "string": {
+        "params": [],
+        "ret": "String"
+      },
+      "print": {
+        "params": [],
+        "ret": "Nothing"
+      },
+      "equals": {
+        "params": [
+          "Obj"
+        ],
+        "ret": "Bool"
+      }
+    },
+    "fields": {}
+  },
+  "Int": {
+    "super": "Obj",
+    "methods": {
+      "$constructor": {
+        "params": [],
+        "ret": "Nothing"
+      },
+      "string": {
+        "params": [],
+        "ret": "String"
+      },
+      "print": {
+        "params": [],
+        "ret": "Nothing"
+      },
+      "equals": {
+        "params": [
+          "Obj"
+        ],
+        "ret": "Bool"
+      },
+      "less": {
+        "params": [
+          "Int"
+        ],
+        "ret": "Bool"
+      },
+      "more": {
+        "params": [
+          "Int"
+        ],
+        "ret": "Bool"
+      },
+      "atmost": {
+        "params": [
+          "Int"
+        ],
+        "ret": "Bool"
+      },
+      "atleast": {
+        "params": [
+          "Int"
+        ],
+        "ret": "Bool"
+      },
+      "plus": {
+        "params": [
+          "Int"
+        ],
+        "ret": "Int"
+      },
+      "times": {
+        "params": [
+          "Int"
+        ],
+        "ret": "Int"
+      },
+      "minus": {
+        "params": [
+          "Int"
+        ],
+        "ret": "Int"
+      },
+      "divide": {
+        "params": [
+          "Int"
+        ],
+        "ret": "Int"
+      },
+      "neg": {
+        "params": [],
+        "ret": "Int"
+      }
+    },
+    "fields": {}
+  },
+  "String": {
+    "super": "Obj",
+    "methods": {
+      "$constructor": {
+        "params": [],
+        "ret": "Nothing"
+      },
+      "string": {
+        "params": [],
+        "ret": "String"
+      },
+      "print": {
+        "params": [],
+        "ret": "Nothing"
+      },
+      "equals": {
+        "params": [
+          "Obj"
+        ],
+        "ret": "Bool"
+      },
+      "less": {
+        "params": [
+          "String"
+        ],
+        "ret": "Bool"
+      },
+      "more": {
+        "params": [
+          "String"
+        ],
+        "ret": "Bool"
+      },
+      "atmost": {
+        "params": [
+          "String"
+        ],
+        "ret": "Bool"
+      },
+      "atleast": {
+        "params": [
+          "String"
+        ],
+        "ret": "Bool"
+      },
+      "plus": {
+        "params": [
+          "String"
+        ],
+        "ret": "String"
+      }
+    },
+    "fields": {}
+  },
+  "Nothing": {
+    "super": "Obj",
+    "methods": {
+      "$constructor": {
+        "params": [],
+        "ret": "Nothing"
+      },
+      "string": {
+        "params": [],
+        "ret": "String"
+      },
+      "print": {
+        "params": [],
+        "ret": "Nothing"
+      },
+      "equals": {
+        "params": [
+          "Obj"
+        ],
+        "ret": "Bool"
+      }
+    },
+    "fields": {}
+  },
+  "Bool": {
+    "super": "Obj",
+    "methods": {
+      "$constructor": {
+        "params": [],
+        "ret": "Nothing"
+      },
+      "string": {
+        "params": [],
+        "ret": "String"
+      },
+      "print": {
+        "params": [],
+        "ret": "Nothing"
+      },
+      "equals": {
+        "params": [
+          "Obj"
+        ],
+        "ret": "Bool"
+      },
+      "NEGATE": {
+        "params": [],
+        "ret": "Bool"
+      }
+    },
+    "fields": {}
+  }
+}

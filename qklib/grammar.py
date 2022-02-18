@@ -6,9 +6,9 @@ quack_grammar = """
     ?statement_block: "{" statement* "}"
     
     ?statement: l_op ";"
-        | NAME "=" l_op
-        | NAME ":" NAME "=" l_op ";"
-        | "if" l_op                                         -> if_block
+        | NAME "=" l_op ";"                                 -> inf_assignment
+        | NAME ":" NAME "=" l_op ";"                        -> assignment
+        | "if" l_op statement_block ("elif" l_op statement_block)* ("else" statement_block)?        -> if_block
         | "while" l_op statement_block                      -> while_block
     
         
@@ -17,12 +17,11 @@ quack_grammar = """
     ?l_op: r_op
         | l_op "and" r_op                                   -> cond_and
         | l_op "or" r_op                                    -> cond_or
-        // delete cond_not (it needs higher precedence )?
-        | l_op "not" r_op                                   -> cond_not
         
     // r_op is a relational operator
     ?r_op: a_op
-        | r_op "==" a_op                                    -> m_equals
+        | r_op "==" a_op                                    -> m_equal
+        | r_op "!=" a_op                                    -> m_notequal
         | r_op "<" a_op                                     -> m_less
         | r_op ">" a_op                                     -> m_more
         | r_op "<=" a_op                                    -> m_atmost
@@ -51,19 +50,20 @@ quack_grammar = """
         | "false"                       -> lit_false
         | "none"                        -> lit_none
         | "(" l_op ")" 
-        // | "not" l_op                -> cond_not
+        | "not" l_op                    -> cond_not
         
     ?type: NAME
-        
+    STRING: ESCAPED_STRING | LONG_STRING
 
+    // change NAME to IDENT
     %import common.CNAME -> NAME
     %import common.NUMBER
     %import common.WS_INLINE
     %import common.NEWLINE
     %import common.C_COMMENT
     %import common.CPP_COMMENT
-    %import common.ESCAPED_STRING -> STRING
-    // %import python.string -> STRING
+    %import common.ESCAPED_STRING
+    %import python.LONG_STRING
     
     %ignore WS_INLINE
     %ignore NEWLINE
