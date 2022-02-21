@@ -414,7 +414,7 @@ class ObjectCode:
             # These operations use indexes into the fields of an object
             slot = self.resolve_field(operand)
             return slot
-        if op == "new":
+        if op in  ["new", "is_instance"]:
             # We use an index into the list of modules
             slot = self.resolve_class(operand)
             return slot
@@ -494,7 +494,7 @@ LABEL_PAT = re.compile(r"""
 # Directive:  Name this class
 CLASS_DECL_PAT = re.compile(r"""
 [.]class \s+ 
-(?P<class_name> \w+ )[:](?P<super_name> \w+)
+(?P<class_name> [\w$]+ )[:](?P<super_name> \w+)
 \s*
 """, re.VERBOSE)
 
