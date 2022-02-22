@@ -49,19 +49,9 @@ class ASTBuilder(Transformer):
         #tree.children.insert(0, Token("NAME", "divide"))
         return tree
 
-    # TODO:
     def if_block(self, tree):
-        #cond, block = tree.children[0], tree.children[1]
-        #print(tree.children)
-        #print(len(tree.children))
-        """
-        for child in tree.children:
-            print(child)
-        print()
-        """
         return tree
 
-    # TODO:
     def while_block(self, tree):
         return tree
 
