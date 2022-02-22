@@ -13,6 +13,6 @@ run the run.sh script with the .qk file's name as an argument.
     ./run.sh simple
 
 ## TODOs
-- finish implementing conditionals, while blocks, and a more elaborate type/var checker
+- finish implementing conditionals and a more elaborate type/var checker
 - create helper functions to generate if_block code so that i can reuse for code
 
