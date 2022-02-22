@@ -48,9 +48,8 @@ class QkGen(Visitor_Recursive):
         self.instructions.append(f"call {tree.type}:divide")
         return tree
 
-    # TODO: NEED TO ADD CASE WHEN THERE'S MORE THAN ONE ELIF
     def if_block(self, tree):
-        print(len(tree.children))
+        #print(len(tree.children))
         else_block = tree.children.pop()
         elif_blocks = tree.children[2:]
         if_cond = tree.children[0]
@@ -94,8 +93,7 @@ class QkGen(Visitor_Recursive):
                     self.instructions.append(f"jump_ifnot {elif_labels[ind+1]}")
                     self.visit(elif_blocks[ind + 1])
                     self.instructions.append(f"jump {endif}")
-                else:
-                    print('error?')
+
             self.instructions.append(f"{endif}:")
         elif elif_blocks and else_block:
             conds = len(elif_blocks) // 2
