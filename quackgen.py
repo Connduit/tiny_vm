@@ -110,14 +110,13 @@ class QkGen(Visitor_Recursive):
             self.instructions.append(f"{endif}:")
 
     def while_block(self, tree):
-        while_cond, while_cond_true = tree.children
         cond_label = self.label("while_label")
         cond_true_label = self.label("while_true")
         self.instructions.append(f"jump {cond_label}")
         self.instructions.append(f"{cond_true_label}:")
-        self.visit(while_cond_true)
+        self.visit(tree.children[1])
         self.instructions.append(f"{cond_label}:")
-        self.visit(while_cond)
+        self.visit(tree.children[0])
         self.instructions.append(f"jump_if {cond_true_label}")
 
     def cond_and(self, tree):
