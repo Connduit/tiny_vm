@@ -3,7 +3,6 @@ from lark import Tree
 from os import path
 
 
-#TODO: make generalized function for const instructions?
 class QkGen(Visitor_Recursive):
     def __init__(self, types):
         #super.__init__()
@@ -157,12 +156,6 @@ class QkGen(Visitor_Recursive):
         self.instructions.append(f"call {tree.children[0].type}:atleast")
 
     def m_call(self, tree):
-        #print(tree)
-        #print(len(tree.children))
-        #print(tree.children[0].type)
-        #print(tree.children[1])
-        #print()
-        #self.visit(tree.children[0])
         self.instructions.append(f"call {tree.children[0].type}:{tree.children[1]}")
 
     def m_args(self, tree):

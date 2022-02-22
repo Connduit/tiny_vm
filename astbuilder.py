@@ -121,12 +121,10 @@ class ASTBuilder(Transformer):
         return tree
 
     def lit_num(self, tree):
-        #TODO: i dont have to declare types here if i do it in type_checker.py
         tree.children[0].type = "Int"
         return tree
 
     def lit_str(self, tree: Tree):
-        #tree.data = "String test"
         tree.type = "String"
         if "\n" in tree.children[0]:
             tree.children[0] = repr(tree.children[0].strip("\"'")).strip("\"'")
@@ -137,7 +135,6 @@ class ASTBuilder(Transformer):
         return tree
 
     def m_neg(self, tree):
-        tree.data = "test"
         tree.children.insert(0, Token("NAME", "negate"))
         return tree
 
@@ -188,8 +185,6 @@ def main():
 
     sourceFile.close()
 
-
-# TODO: still might need to add negate method for booleans in builtins.c
 
 
 if __name__ == '__main__':
