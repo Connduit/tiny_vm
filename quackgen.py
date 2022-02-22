@@ -1,9 +1,6 @@
 from lark.visitors import Visitor_Recursive
 from lark import Tree
 from os import path
-from collections import Counter
-#from collections import defaultdict as dd
-#import itertools
 
 
 #TODO: make generalized function for const instructions?
@@ -13,15 +10,11 @@ class QkGen(Visitor_Recursive):
         self.variables = dict()
         self.instructions = list()
         self.types = types
-        #self.labels = Counter()
         self.labels = dict()
-        #self.labels = dd(itertools.count)
 
     def label(self, prefix):
         num = self.labels.get(prefix, 0) + 1
         self.labels[prefix] = num
-        #num = self.labels[prefix]
-        #self.labels.update(prefix)
         return f"{prefix}_{num}"
 
     def m_add(self, tree):
@@ -186,7 +179,7 @@ class QkGen(Visitor_Recursive):
         self.instructions.append(f"const \"{tree.children[0]}\"")
 
     def m_neg(self, tree):
-        return tree
+        self.instructions.append(f"call {tree.children[0].type}:negate")
 
     def var(self, tree: Tree):
         self.instructions.append(f"load {tree.children[0]}")
