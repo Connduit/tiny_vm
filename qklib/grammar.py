@@ -3,12 +3,17 @@ quack_grammar = """
         
     ?program: statement*
     
-    ?statement_block: "{" statement* "}"
+    ?statement_block: "{" statement+ "}"
     
     ?statement: l_op ";"
-        | NAME [":" NAME] "=" l_op ";"                       -> assignment
-        | "if" l_op statement_block ("elif" l_op statement_block)* ("else" statement_block)?        -> if_block
+        // | NAME [":" NAME] "=" l_op ";"                      -> assignment
+        | NAME ":" NAME "=" l_op ";"                           -> assignment
+        | NAME "=" l_op ";"                                     -> inf_assignment
+        // | "if" l_op statement_block ("elif" l_op statement_block)* ("else" statement_block)?        -> if_block
+        | "if" l_op statement_block ("elif" l_op statement_block)* ["else" statement_block]        -> if_block
         | "while" l_op statement_block                      -> while_block
+        
+    
     
         
     // change name to expr?
@@ -41,8 +46,8 @@ quack_grammar = """
         
     ?atom: NUMBER                       -> lit_num
         | STRING                        -> lit_str
-        // fix NAME -> var?
         | "none"                     -> lit_nothing
+        // fix NAME -> var?
         | NAME                          -> var
         // change "-" l_op to "-" NUMBER
         | "-" l_op                      -> m_neg

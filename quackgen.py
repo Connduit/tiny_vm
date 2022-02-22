@@ -2,6 +2,8 @@ from lark.visitors import Visitor_Recursive
 from lark import Tree
 from os import path
 from collections import Counter
+#from collections import defaultdict as dd
+#import itertools
 
 
 #TODO: make generalized function for const instructions?
@@ -11,11 +13,15 @@ class QkGen(Visitor_Recursive):
         self.variables = dict()
         self.instructions = list()
         self.types = types
-        self.labels = Counter()
+        #self.labels = Counter()
+        self.labels = dict()
+        #self.labels = dd(itertools.count)
 
     def label(self, prefix):
-        num = self.labels[prefix]
-        self.labels.update(prefix)
+        num = self.labels.get(prefix, 0) + 1
+        self.labels[prefix] = num
+        #num = self.labels[prefix]
+        #self.labels.update(prefix)
         return f"{prefix}_{num}"
 
     def m_add(self, tree):
@@ -27,6 +33,7 @@ class QkGen(Visitor_Recursive):
 
     def m_sub(self, tree):
         #print(tree.children)
+        self.instructions.append(f"roll 1")
         self.instructions.append(f"call {tree.type}:minus")
         return tree
 
@@ -37,45 +44,129 @@ class QkGen(Visitor_Recursive):
 
     def m_div(self, tree):
         #print(tree.children)
+        self.instructions.append(f"roll 1")
         self.instructions.append(f"call {tree.type}:divide")
         return tree
 
-    # TODO:
+    # TODO: NEED TO ADD CASE WHEN THERE'S MORE THAN ONE ELIF
     def if_block(self, tree):
-        return tree
+        print(len(tree.children))
+        else_block = tree.children.pop()
+        elif_blocks = tree.children[2:]
+        if_cond = tree.children[0]
+        if_cond_true = tree.children[1]
+        #print(if_cond)
+        #print(if_cond_true)
+        #print(elif_blocks)
+        #print(else_block)
+
+        if_label = self.label("if_label")
+        else_label = self.label("else_label")
+        endif = self.label("endif_label")
+
+        if not elif_blocks and else_block is None:
+            self.visit(if_cond)
+            self.instructions.append(f"jump_ifnot {endif}")
+            self.visit(if_cond_true)
+            self.instructions.append(f"jump {endif}")
+            self.instructions.append(f"{endif}:")
+        elif not elif_blocks and else_block:
+            self.visit(if_cond)
+            self.instructions.append(f"jump_ifnot {else_label}")
+            self.visit(if_cond_true)
+            self.instructions.append(f"jump {endif}")
+            self.instructions.append(f"{else_label}:")
+            self.visit(else_block)
+            #self.instructions.append(f"jump {endif}")
+            self.instructions.append(f"{endif}:")
+        elif elif_blocks and else_block is None:
+            conds = len(elif_blocks) // 2
+            elif_labels = [self.label("elif_label") for cond in range(conds)]
+            self.visit(if_cond)
+            self.instructions.append(f"jump_ifnot {elif_labels[0]}")
+            self.visit(if_cond_true)
+            self.instructions.append(f"jump {endif}")
+
+            for ind in range(conds):
+                self.instructions.append(f"{elif_labels[ind]}:")
+                self.visit(elif_blocks[ind])
+                if ind < conds-1:
+                    self.instructions.append(f"jump_ifnot {elif_labels[ind+1]}")
+                    self.visit(elif_blocks[ind + 1])
+                    self.instructions.append(f"jump {endif}")
+                else:
+                    print('error?')
+            self.instructions.append(f"{endif}:")
+        elif elif_blocks and else_block:
+            conds = len(elif_blocks) // 2
+            elif_labels = [self.label("elif_label") for cond in range(conds)]
+            self.visit(if_cond)
+            self.instructions.append(f"jump_ifnot {elif_labels[0]}")
+            self.visit(if_cond_true)
+            self.instructions.append(f"jump {endif}")
+
+            for ind in range(conds):
+                self.instructions.append(f"{elif_labels[ind]}:")
+                self.visit(elif_blocks[ind])
+                if ind < conds-1:
+                    self.instructions.append(f"jump_ifnot {elif_labels[ind+1]}")
+                    self.visit(elif_blocks[ind + 1])
+                    self.instructions.append(f"jump {endif}")
+            #self.instructions.append(f"jump {else_label}")
+            #self.instructions.append(f"{else_label}:")
+            self.visit(else_block)
+            #self.instructions.append(f"jump {endif}")
+            self.instructions.append(f"{endif}:")
+
 
     # TODO:
     def while_block(self, tree):
         return tree
 
     def cond_and(self, tree):
-        return tree
+        label = self.label("and")
+        self.visit(tree.children[0])
+        self.instructions.append(f"jump_ifnot {label}")
+        self.visit(tree.children[1])
+        self.instructions.append(f"{label}:")
 
     def cond_or(self, tree):
+        tree.type = "Bool"
         return tree
 
     def cond_not(self, tree):
-        return tree
+        tree.type = "Bool"
 
     def m_equal(self, tree):
-        return tree
+        tree.type = "Bool"
+        self.instructions.append(f"call {tree.children[0].type}:equals")
 
     def m_notequal(self, tree):
-        return tree
+        tree.type = "Bool"
 
     def m_less(self, tree):
-        return tree
+        self.instructions.append(f"roll 1")
+        self.instructions.append(f"call {tree.children[0].type}:less")
 
     def m_more(self, tree):
-        return tree
+        self.instructions.append(f"roll 1")
+        self.instructions.append(f"call {tree.children[0].type}:more")
 
     def m_atmost(self, tree):
-        return tree
+        self.instructions.append(f"roll 1")
+        self.instructions.append(f"call {tree.children[0].type}:atmost")
 
     def m_atleast(self, tree):
-        return tree
+        self.instructions.append(f"roll 1")
+        self.instructions.append(f"call {tree.children[0].type}:atleast")
 
     def m_call(self, tree):
+        #print(tree)
+        #print(len(tree.children))
+        #print(tree.children[0].type)
+        #print(tree.children[1])
+        #print()
+        #self.visit(tree.children[0])
         self.instructions.append(f"call {tree.children[0].type}:{tree.children[1]}")
 
     def m_args(self, tree):
@@ -91,11 +182,9 @@ class QkGen(Visitor_Recursive):
         self.instructions.append("const nothing")
 
     def lit_num(self, tree: Tree):
-        #print(tree.children[0])
         self.instructions.append(f"const {tree.children[0]}")
 
     def lit_str(self, tree):
-        #print(tree.children[0])
         self.instructions.append(f"const \"{tree.children[0]}\"")
 
     def m_neg(self, tree):
@@ -112,12 +201,31 @@ class QkGen(Visitor_Recursive):
         self.variables[var_name] = var_type
         self.instructions.append(f"store {var_name}")
 
+    def inf_assignment(self, tree):
+        var_name = tree.children[0]
+        var_op = tree.children[1]
+
+        try:
+            self.variables[var_name] = tree.type
+        except AttributeError:
+            self.variables[var_name] = 'unknown'
+        self.instructions.append(f"store {var_name}")
+
     def visit(self, tree):
         #print(f"tree.data = {tree.data}")
-        if tree.data == "DO SOMETHING":
-            pass
+        if isinstance(tree, Tree):
+            if tree.data == "if_block":
+                self.if_block(tree)
+            elif tree.data == "while_block":
+                self.while_block(tree)
+            elif tree.data == "assignment":
+                self.assignment(tree)
+            else:
+                super().visit(tree)
         else:
-            super().visit(tree)
+            pass
+            #print(tree)
+            #super().visit(tree)
 
 
 def build(filename, instructions, variables):

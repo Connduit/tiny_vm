@@ -8,19 +8,33 @@ class TypeChecker(Visitor_Recursive):
         with open("./qklib/builtin_methods.json", "r") as f:
             self.types = json.load(f)
         self.variables = dict()
-        self.changed = False
+        #self.changed = False
 
     def visit(self, tree):
         changed = False
         if not isinstance(tree, Tree):
             return changed
 
-        #print(tree.data)
         for child in tree.children:
             changed = self.visit(child) or changed
 
-        ret = self._call_userfunc(tree)
-        return changed or ret
+        return changed or self._call_userfunc(tree)
+
+
+    def lit_true(self, tree):
+        tree.type = "Bool"
+
+    def lit_false(self, tree):
+        tree.type = "Bool"
+
+    def lit_nothing(self, tree):
+        tree.type = "Nothing"
+
+    def lit_num(self, tree):
+        tree.type = "Int"
+
+    def lit_str(self, tree: Tree):
+        tree.type = "String"
 
     def m_add(self, tree):
         item_type = tree.children[0].children[0].type
@@ -29,7 +43,6 @@ class TypeChecker(Visitor_Recursive):
             tree.type = method["methods"]["plus"]["ret"]
         except KeyError:
             tree.type = self.variables[tree.children[0].children[0].value]
-
 
     def m_sub(self, tree):
         item_type = tree.children[0].children[0].type
@@ -57,9 +70,32 @@ class TypeChecker(Visitor_Recursive):
         except KeyError:
             tree.type = self.variables[tree.children[0].children[0].value]
 
+    def cond_and(self, tree):
+        tree.type = "Bool"
 
-    def lit_str(self, tree):
-        pass
+    def cond_or(self, tree):
+        tree.type = "Bool"
+
+    def cond_not(self, tree):
+        tree.type = "Bool"
+
+    def m_equal(self, tree):
+        tree.type = "Bool"
+
+    def m_notequal(self, tree):
+        tree.type = "Bool"
+
+    def m_less(self, tree):
+        tree.type = "Bool"
+
+    def m_more(self, tree):
+        tree.type = "Bool"
+
+    def m_atmost(self, tree):
+        tree.type = "Bool"
+
+    def m_atleast(self, tree):
+        tree.type = "Bool"
 
     def m_call(self, tree):
         #print(tree.children[0])
@@ -73,7 +109,25 @@ class TypeChecker(Visitor_Recursive):
 
     def var(self, tree):
         #print(tree.children[0].value)
-        tree.type = self.variables[tree.children[0]]
+        try:
+            tree.type = self.variables[tree.children[0]]
+        except KeyError:
+            tree.type = "unknown"
+            print("fix inf_assignment")
+
+    def inf_assignment(self, tree):
+        try:
+            #orig = tree.type
+            orig = tree.children[1].type
+            #var_name = tree.children[0]
+        except AttributeError:
+            orig = ""
+        var_name = tree.children[0]
+        var_value = tree.children[1]
+        old_type = self.variables.get(var_name, "")
+        new_type = self.shared_ancestor(old_type, orig)
+        tree.type = new_type
+        self.variables[var_name] = new_type
 
     def assignment(self, tree):
         try:
@@ -92,6 +146,7 @@ class TypeChecker(Visitor_Recursive):
 
         old_type = self.variables.get(var_name, "")
         shared_type = self.shared_ancestor(old_type, var_type)
+
         tree.type = shared_type
         self.variables[var_name] = shared_type
 
@@ -103,10 +158,9 @@ class TypeChecker(Visitor_Recursive):
 
     def __default__(self, tree):
         try:
-            orig = tree.type
+            curr_type = tree.type
         except AttributeError:
             tree.type = ""
-        #print(tree.children)
 
     def shared_ancestor(self, obj1, obj2):
         if not obj1 and obj2:
@@ -115,3 +169,5 @@ class TypeChecker(Visitor_Recursive):
             return obj1
         elif obj1 == obj2:
             return obj1
+        else:
+            pass

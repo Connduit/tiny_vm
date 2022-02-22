@@ -51,7 +51,14 @@ class ASTBuilder(Transformer):
 
     # TODO:
     def if_block(self, tree):
-        cond, block = tree.children[0], tree.children[1]
+        #cond, block = tree.children[0], tree.children[1]
+        #print(tree.children)
+        #print(len(tree.children))
+        """
+        for child in tree.children:
+            print(child)
+        print()
+        """
         return tree
 
     # TODO:
@@ -157,6 +164,9 @@ class ASTBuilder(Transformer):
         # len(tree.children) = 3; var_name, var_type, l_op
         return tree
 
+    def inf_assignment(self, tree):
+        return tree
+
 
 def main():
     # TODO: raw expressions should be immediately popped from the stack as they will never be used
@@ -185,6 +195,7 @@ def main():
     g = quackgen.QkGen(types)
     g.visit(tree)
     quackgen.build(sourceFilename, g.instructions, g.variables)
+
     sourceFile.close()
 
 
