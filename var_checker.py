@@ -12,7 +12,8 @@ class VarChecker(Visitor_Recursive):
 
     def var(self, tree):
         if tree.children[0] not in self.variables:
-            print(f"Variable {tree.children[0]} is undefined")
+            # change print to write to stderror
+            print(f"NameError: name '{tree.children[0]}' is not defined")
             exit()
 
     def inf_assignment(self, tree):

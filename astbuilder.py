@@ -5,6 +5,7 @@ from os import path
 import argparse
 import json
 from type_checker import TypeChecker
+from var_checker import VarChecker
 
 
 def cli():
@@ -69,32 +70,27 @@ class ASTBuilder(Transformer):
 
     def m_equal(self, tree):
         #tree.data = "test"
-        #tree.type = "Bool"
+        tree.type = "Bool"
         return tree
 
     def m_notequal(self, tree):
-        #tree.type = "Bool"
-        #tree.data = "test"
+        tree.type = "Bool"
         return tree
 
     def m_less(self, tree):
-        #tree.data = "test"
-        #tree.type = "Bool"
+        tree.type = "Bool"
         return tree
 
     def m_more(self, tree):
-        #tree.data = "test"
-        #tree.type = "Bool"
+        tree.type = "Bool"
         return tree
 
     def m_atmost(self, tree):
-        #tree.data = "test"
-        #tree.type = "Bool"
+        tree.type = "Bool"
         return tree
 
     def m_atleast(self, tree):
-        #tree.data = "test"
-        #tree.type = "Bool"
+        tree.type = "Bool"
         return tree
 
     def m_call(self, tree: Tree):
@@ -106,18 +102,15 @@ class ASTBuilder(Transformer):
         return tree
 
     def lit_true(self, tree):
-        #tree.type = "Bool"
-        #tree.children[0].type = "Bool"
+        tree.type = "Bool"
         return tree
 
     def lit_false(self, tree):
-        #tree.type = "Bool"
-        #tree.children[0].type = "Bool"
+        tree.type = "Bool"
         return tree
 
     def lit_nothing(self, tree):
-        #tree.type = "Nothing"
-        #tree.children[0].type = "Nothing"
+        tree.type = "Nothing"
         return tree
 
     def lit_num(self, tree):
@@ -176,6 +169,7 @@ def main():
     with open("./qklib/builtin_methods.json", "r") as f:
         types = json.load(f)
 
+    VarChecker().visit(tree)
     tc = TypeChecker()
     tc.visit(tree)
 
