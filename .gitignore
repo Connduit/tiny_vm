@@ -3,7 +3,6 @@
 
 # IDE cruft
 .idea
-
 __pycache__/
 
 
@@ -92,3 +91,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# My junk
+*.qk
+*.asm
