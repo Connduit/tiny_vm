@@ -130,12 +130,19 @@ class QkGen(Visitor_Recursive):
         self.visit(tree.children[1])
         self.instructions.append(f"{label}:")
 
+    # TODO: There's got to be a better way to do this
     def cond_or(self, tree):
-        label = self.label("or_label")
+        true_label = self.label("or_label")
+        false_label = self.label("or_label")
         self.visit(tree.children[0])
-        self.instructions.append(f"jump_if {label}")
+        self.instructions.append(f"jump_if {true_label}")
         self.visit(tree.children[1])
-        self.instructions.append(f"{label}:")
+        self.instructions.append(f"jump_if {true_label}")
+        self.instructions.append(f"const false")
+        self.instructions.append(f"jump {false_label}")
+        self.instructions.append(f"{true_label}:")
+        self.instructions.append(f"const true")
+        self.instructions.append(f"{false_label}:")
 
     def cond_not(self, tree):
         #print(tree.children)
@@ -226,6 +233,10 @@ class QkGen(Visitor_Recursive):
                 #self.assignment(tree)
                 self._call_userfunc(tree)
             elif tree.data == "cond_and":
+                self._call_userfunc(tree)
+            elif tree.data == "cond_or":
+                self._call_userfunc(tree)
+            elif tree.data == "cond_not":
                 self._call_userfunc(tree)
             else:
                 super().visit(tree)
