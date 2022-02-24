@@ -20,21 +20,20 @@ class TypeChecker(Visitor_Recursive):
 
         return changed or self._call_userfunc(tree)
 
-
     def lit_true(self, tree):
-        pass
+        tree.type = "Bool"
 
     def lit_false(self, tree):
-        pass
+        tree.type = "Bool"
 
     def lit_nothing(self, tree):
-        pass
+        tree.type = "Nothing"
 
     def lit_num(self, tree):
-        pass
+        tree.type = "Int"
 
     def lit_str(self, tree: Tree):
-        pass
+        tree.type = "String"
 
     def m_add(self, tree):
         item_type = tree.children[0].children[0].type
@@ -51,7 +50,6 @@ class TypeChecker(Visitor_Recursive):
             tree.type = method["methods"]["minus"]["ret"]
         except KeyError:
             tree.type = self.variables[tree.children[0].children[0].value]
-
 
     def m_mul(self, tree):
         item_type = tree.children[0].children[0].type
@@ -86,14 +84,14 @@ class TypeChecker(Visitor_Recursive):
         tree.type = "Bool"
 
     def cond_not(self, tree):
-        if not (tree.children[0].type == tree.children[1].type == "Bool"):
+        if tree.children[0].type != "Bool":
             print(f"cond_not needs type 'Bool' but {tree.children[0].data} has type '{tree.children[0].type}'")
-            print(f"cond_not needs type 'Bool' but {tree.children[1].data} has type '{tree.children[0].type}'")
             exit()
 
         tree.type = "Bool"
 
     def m_equal(self, tree):
+        tree.type = "Bool"
         pass
 
     def m_notequal(self, tree):
@@ -109,6 +107,9 @@ class TypeChecker(Visitor_Recursive):
         tree.type = "Bool"
 
     def m_atleast(self, tree):
+        tree.type = "Bool"
+
+    def if_block(self, tree):
         tree.type = "Bool"
 
     def m_call(self, tree):
@@ -127,6 +128,7 @@ class TypeChecker(Visitor_Recursive):
         except KeyError:
             tree.type = "unknown"
             print(f"unknown type from {tree.children[0]}")
+            #exit()
 
     def inf_assignment(self, tree):
         try:
@@ -163,13 +165,8 @@ class TypeChecker(Visitor_Recursive):
         tree.type = shared_type
         self.variables[var_name] = shared_type
 
-    """
     def __default__(self, tree):
-        try:
-            curr_type = tree.type
-        except AttributeError:
-            tree.type = ""
-    """
+        pass
 
     def shared_ancestor(self, obj1, obj2):
         if not obj1 and obj2:

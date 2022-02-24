@@ -115,6 +115,7 @@ class ASTBuilder(Transformer):
 
     def lit_num(self, tree):
         tree.children[0].type = "Int"
+        tree.type = "Int"
         return tree
 
     def lit_str(self, tree: Tree):
@@ -128,6 +129,7 @@ class ASTBuilder(Transformer):
         return tree
 
     def m_neg(self, tree):
+        # Int:negate
         tree.children.insert(0, Token("NAME", "negate"))
         return tree
 
@@ -170,8 +172,7 @@ def main():
         types = json.load(f)
 
     VarChecker().visit(tree)
-    tc = TypeChecker()
-    tc.visit(tree)
+    TypeChecker().visit(tree)
 
     g = quackgen.QkGen(types)
     g.visit(tree)

@@ -85,6 +85,10 @@ class QkGen(Visitor_Recursive):
                     self.instructions.append(f"jump_ifnot {elif_labels[ind+1]}")
                     self.visit(elif_blocks[ind + 1])
                     self.instructions.append(f"jump {endif}")
+                else:
+                    self.instructions.append(f"jump_ifnot {elif_labels[ind]}")
+                    self.visit(elif_blocks[ind + 1])
+                    self.instructions.append(f"jump {endif}")
 
             self.instructions.append(f"{endif}:")
         elif elif_blocks and else_block:
@@ -119,18 +123,26 @@ class QkGen(Visitor_Recursive):
         self.instructions.append(f"jump_if {cond_true_label}")
 
     def cond_and(self, tree):
-        label = self.label("and")
+        #label = self.label("and")
+        label = self.label("and_label")
         self.visit(tree.children[0])
         self.instructions.append(f"jump_ifnot {label}")
         self.visit(tree.children[1])
         self.instructions.append(f"{label}:")
 
     def cond_or(self, tree):
-        tree.type = "Bool"
-        return tree
+        label = self.label("or_label")
+        self.visit(tree.children[0])
+        self.instructions.append(f"jump_if {label}")
+        self.visit(tree.children[1])
+        self.instructions.append(f"{label}:")
 
     def cond_not(self, tree):
-        tree.type = "Bool"
+        #print(tree.children)
+        self.visit(tree.children[0])
+        #self.instructions.append(f"{tree.children[0].type}:negate")
+        #self.instructions.append(f"call Boolean:negate")
+        self.instructions.append(f"call {tree.type}:negate")
 
     def m_equal(self, tree):
         tree.type = "Bool"
@@ -140,6 +152,7 @@ class QkGen(Visitor_Recursive):
         tree.type = "Bool"
 
     def m_less(self, tree):
+
         self.instructions.append(f"roll 1")
         self.instructions.append(f"call {tree.children[0].type}:less")
 
@@ -204,14 +217,20 @@ class QkGen(Visitor_Recursive):
         #print(f"tree.data = {tree.data}")
         if isinstance(tree, Tree):
             if tree.data == "if_block":
-                self.if_block(tree)
+                #self.if_block(tree)
+                self._call_userfunc(tree)
             elif tree.data == "while_block":
-                self.while_block(tree)
+                #self.while_block(tree)
+                self._call_userfunc(tree)
             elif tree.data == "assignment":
-                self.assignment(tree)
+                #self.assignment(tree)
+                self._call_userfunc(tree)
+            elif tree.data == "cond_and":
+                self._call_userfunc(tree)
             else:
                 super().visit(tree)
         else:
+            print("not tree")
             pass
             #print(tree)
             #super().visit(tree)
