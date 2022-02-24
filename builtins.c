@@ -499,7 +499,6 @@ vm_Word method_Boolean_constructor[] = {
 };
 
 /* Boolean:string */
-
 obj_ref native_Boolean_string() {
     obj_ref this = vm_fp->obj;
     if (this == lit_true) {
@@ -515,6 +514,24 @@ vm_Word method_Boolean_string[] = {
         {.instr = vm_op_enter},
         {.instr = vm_op_call_native},
         {.native = native_Boolean_string},
+        {.instr = vm_op_return},
+        {.intval = 0 }
+};
+
+/* Boolean:negate */
+obj_ref native_Boolean_negate() {
+    obj_ref this = vm_fp->obj;
+    if (this == lit_true) {
+        return lit_false;
+    } else {
+        return lit_true;
+    }
+}
+
+vm_Word method_Boolean_negate[] = {
+        {.instr = vm_op_enter},
+        {.instr = vm_op_call_native},
+        {.native = native_Boolean_negate},
         {.instr = vm_op_return},
         {.intval = 0 }
 };
@@ -537,7 +554,8 @@ struct  class_struct  the_class_Boolean_struct = {
                  method_Boolean_constructor, // constructor
                  method_Boolean_string, // STRING
                  method_Obj_print, // PRINT
-                 method_Obj_equals  // EQUALS
+                 method_Obj_equals,  // EQUALS
+                 method_Boolean_negate  // EQUALS
                 }
 };
 

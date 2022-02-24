@@ -92,7 +92,7 @@
         ],
         "ret": "Int"
       },
-      "neg": {
+      "negate": {
         "params": [],
         "ret": "Int"
       }
@@ -198,7 +198,7 @@
         ],
         "ret": "Bool"
       },
-      "NEGATE": {
+      "negate": {
         "params": [],
         "ret": "Bool"
       }
