@@ -93,7 +93,7 @@ class TypeChecker(Visitor_Recursive):
         try:
             tree.type = self.variables[tree.children[0]]
         except KeyError:
-            print(f"unknown type from {tree.children[0]}")
+            print(f"cannot find type for undefined variable {tree.children[0]}")
             exit()
 
     def assignment(self, tree):
@@ -127,7 +127,7 @@ class TypeChecker(Visitor_Recursive):
             field_type = self.types[obj.type]['fields'][field]
         except KeyError:
             print('bad store')
-            #exit()
+            exit()
 
         #TODO: obj.type should return the class that owns it
         this_obj = obj.type in self.types and obj == "this"
