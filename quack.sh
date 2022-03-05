@@ -1,10 +1,8 @@
 #!/bin/bash
-name=$1
-python ./astbuilder.py -f $1
-python ./assemble.py ./tests/src/"${name%%.*}.asm" ./tests/OBJ/"${name%%.*}.json"
-
+name=${1##*/}
+./quackc.sh $1
 
 cd tests/
-../bin/tiny_vm ${name%%.*}
+../bin/tiny_vm "${name%.*}"
 
 
