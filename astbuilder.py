@@ -7,21 +7,27 @@ class ASTBuilder(Transformer):
         self.default_classname = default_classname
 
     def m_add(self, tree):
+        tree.type = ""
         return tree
 
     def m_sub(self, tree):
+        tree.type = ""
         return tree
 
     def m_mul(self, tree):
+        tree.type = ""
         return tree
 
     def m_div(self, tree):
+        tree.type = ""
         return tree
 
     def if_block(self, tree):
+        tree.type = ""
         return tree
 
     def while_block(self, tree):
+        tree.type = ""
         return tree
 
     def cond_and(self, tree):
@@ -61,9 +67,11 @@ class ASTBuilder(Transformer):
         return tree
 
     def m_call(self, tree: Tree):
+        tree.type = ""
         return tree
 
     def m_args(self, tree):
+        tree.type = ""
         return tree
 
     def lit_true(self, tree):
@@ -95,14 +103,17 @@ class ASTBuilder(Transformer):
 
     def m_neg(self, tree):
         # Int:negate
+        tree.type = ""
         tree.children.insert(0, Token("IDENT", "negate"))
         return tree
 
     def var(self, tree):
+        tree.type = ""
         return tree
 
     def assignment(self, tree):
         #print(f"children = {tree.children}")
+        tree.type = ""
         return tree
 
     def program(self, tree: Tree):
