@@ -1,53 +1,21 @@
-from qklib.grammar import quack_grammar
-import quackgen
-from lark import Lark, Transformer, v_args, Token, Tree
-from os import path
-import argparse
-import json
-from type_checker import TypeChecker
-from var_checker import VarChecker
-
-
-def cli():
-    arg_parser = argparse.ArgumentParser(description="Compiles Quack into ASM")
-    arg_parser.add_argument("-f", "--filename", required=True, help="Quack Source File")
-    return arg_parser
+from lark import Transformer, v_args, Token, Tree
 
 
 @v_args(tree=True)
 class ASTBuilder(Transformer):
-    def m_add(self, tree):
-        #tree.data = "plus"
-        #print(f"tree.children[0] = {tree.children[0]}")
-        #print(f"tree.children[1:] = {tree.children[1:]}")
-        #print(f"tree.children[1].children = {tree.children[1].children}")
-        # tree.children[0] = lit_num
-        # tree.children[1:) = # the rest of the tree
+    def __init__(self, default_classname="Main"):
+        self.default_classname = default_classname
 
+    def m_add(self, tree):
         return tree
 
     def m_sub(self, tree):
-        #tree.data = "Int"
-        #tree.data = "test"
-        #print(f"sub children = {tree.children}")
-        # change NAME to Int?
-        #tree.children.insert(0, Token("NAME", "minus"))
         return tree
 
     def m_mul(self, tree):
-        #tree.data = "Int"
-        #print(f"mul children = {tree.children}")
-        # change NAME to Int?
-        #tree.data = "test"
-        #tree.children.insert(0, Token("NAME", "times"))
         return tree
 
     def m_div(self, tree):
-        #tree.data = "Int"
-        #print(f"div children = {tree.children}")
-        # change NAME to Int?
-        #tree.data = "test"
-        #tree.children.insert(0, Token("NAME", "divide"))
         return tree
 
     def if_block(self, tree):
@@ -57,19 +25,18 @@ class ASTBuilder(Transformer):
         return tree
 
     def cond_and(self, tree):
-        #tree.type = "Bool"
+        tree.type = "Bool"
         return tree
 
     def cond_or(self, tree):
-        #tree.type = "Bool"
+        tree.type = "Bool"
         return tree
 
     def cond_not(self, tree):
-        #tree.type = "Bool"
+        tree.type = "Bool"
         return tree
 
     def m_equal(self, tree):
-        #tree.data = "test"
         tree.type = "Bool"
         return tree
 
@@ -94,8 +61,6 @@ class ASTBuilder(Transformer):
         return tree
 
     def m_call(self, tree: Tree):
-        #print(f"m_call child0 = {tree.children[0]}")
-        #print(f"m_call child1 = {tree.children[1]}")
         return tree
 
     def m_args(self, tree):
@@ -130,57 +95,93 @@ class ASTBuilder(Transformer):
 
     def m_neg(self, tree):
         # Int:negate
-        tree.children.insert(0, Token("NAME", "negate"))
+        tree.children.insert(0, Token("IDENT", "negate"))
         return tree
 
     def var(self, tree):
-        #print(f"var children = {tree.children}")
-        #print(f"var type = {tree.children[0].type}")
-        # var_name = tree.children[0].value
-        # TODO: find var_value/var_type by looking up var_name in self.variables?
-
         return tree
 
     def assignment(self, tree):
         #print(f"children = {tree.children}")
-        # len(tree.children) = 3; var_name, var_type, l_op
         return tree
 
-    def inf_assignment(self, tree):
+    def program(self, tree: Tree):
+        classes = list()
+        statements = list()
+        for child in tree.children:
+            if isinstance(child, Tree):
+                # child doesn't belong to a class
+                statements.append(child)
+            else:
+                classes.append(child)
+
+        new_tree = Tree("_class", [
+            Tree("class_sig", [
+                self.default_classname,
+                Tree("formal_args", []),
+                "Obj"
+            ]),
+            Tree("class_body", [
+                Tree(Token("RULE", "statements"), []),
+                Tree("methods", [
+                    Tree("method", [
+                        "$constructor",
+                        Tree("formal_args", []),
+                        "Nothing",
+                        Tree("statement_block", statements)
+                    ])
+                ])
+            ])
+        ])
+        classes.append(new_tree)
+        tree.children = classes
         return tree
 
+    def _class(self, tree):
+        #class: class_sig class_body -> _class
+        new_tree = Tree("_class", [tree[0], tree[1]])
+        return new_tree
 
-def main():
-    # TODO: raw expressions should be immediately popped from the stack as they will never be used
-    args = cli()
-    sourceFilename = vars(args.parse_args())["filename"]
-    if not path.exists(sourceFilename):
-        print("Not a valid file or path to file")
-        args.print_usage()
-        exit()
+    def class_sig(self, tree: Tree):
+        #class_sig: "class" IDENT "(" formal_args ")" [ "extends" IDENT ] -> class_sig
+        tree.type = ""
+        return tree
 
-    quack_parser = Lark(quack_grammar, parser='lalr')
-    sourceFile = open(sourceFilename, "r")
-    text = sourceFile.read()
-    tree = quack_parser.parse(text)
-    #print(tree.pretty("    "))
-    tree = ASTBuilder().transform(tree)
-    #print(tree.pretty("    "))
-    #print(tree)
+    def formal_args(self, tree: Tree):
+        #?formal_args: [IDENT ":" IDENT ("," IDENT ":" IDENT)* ] -> formal_args
+        tree.type = ""
+        return tree
 
-    with open("./qklib/builtin_methods.json", "r") as f:
-        types = json.load(f)
+    def class_body(self, tree):
+        #?class_body: "{" statement* method* "}" -> class_body
+        tree.type = ""
+        return tree
 
-    VarChecker().visit(tree)
-    TypeChecker().visit(tree)
+    def method(self, tree):
+        method_name = tree.children[0]
+        formal_args = tree.children[1]
+        tree.type = method_name
+        return tree
 
-    g = quackgen.QkGen(types)
-    g.visit(tree)
-    quackgen.build(sourceFilename, g.instructions, g.variables)
+    def statement_block(self, tree: Tree):
+        tree.type = ""
+        return tree
 
-    sourceFile.close()
+    def c_call(self, tree):
+        tree.type = ""
+        return tree
 
+    #TODO: change type of obj token
+    def store_field(self, tree: Tree):
+        tree.type = ""
+        lhs, rhs = tree.children
+        obj, field = lhs.children
+        return Tree("store_field", [obj, field, rhs])
 
+    #TODO: change type of obj token
+    def load_field(self, tree: Tree):
+        tree.type = ""
+        obj = tree.children[0].children[0]
+        field = tree.children[1]
+        return Tree("load_field", [obj, field])
 
-if __name__ == '__main__':
-    main()
