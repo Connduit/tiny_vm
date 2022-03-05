@@ -17,14 +17,11 @@ class QkGen(Visitor_Recursive):
         return f"{prefix}_{num}"
 
     def m_add(self, tree):
-        #self.instructions.append(f"call {type}:{method}")
-        #print(len(tree.children))
-        #self.m_call(tree)
+        self.instructions.append(f"roll 1")
         self.instructions.append(f"call {tree.type}:plus")
         return tree
 
     def m_sub(self, tree):
-        #print(tree.children)
         self.instructions.append(f"roll 1")
         self.instructions.append(f"call {tree.type}:minus")
         return tree
@@ -46,10 +43,6 @@ class QkGen(Visitor_Recursive):
         elif_blocks = tree.children[2:]
         if_cond = tree.children[0]
         if_cond_true = tree.children[1]
-        #print(if_cond)
-        #print(if_cond_true)
-        #print(elif_blocks)
-        #print(else_block)
 
         if_label = self.label("if_label")
         else_label = self.label("else_label")
@@ -152,11 +145,10 @@ class QkGen(Visitor_Recursive):
         self.instructions.append(f"call {tree.type}:negate")
 
     def m_equal(self, tree):
-        tree.type = "Bool"
         self.instructions.append(f"call {tree.children[0].type}:equals")
 
     def m_notequal(self, tree):
-        tree.type = "Bool"
+        pass
 
     def m_less(self, tree):
 
@@ -207,18 +199,13 @@ class QkGen(Visitor_Recursive):
         var_type = tree.children[1]
         var_op = tree.children[2]
 
+        self.visit(var_op)
         self.variables[var_name] = var_type
         self.instructions.append(f"store {var_name}")
 
-    def inf_assignment(self, tree):
-        var_name = tree.children[0]
-        var_op = tree.children[1]
-
-        try:
-            self.variables[var_name] = tree.type
-        except AttributeError:
-            self.variables[var_name] = 'unknown'
-        self.instructions.append(f"store {var_name}")
+    def bare_expr(self, tree):
+        pass
+        #self.instructions.append(f"pop")
 
     def visit(self, tree):
         #print(f"tree.data = {tree.data}")
@@ -242,9 +229,11 @@ class QkGen(Visitor_Recursive):
                 super().visit(tree)
         else:
             print("not tree")
-            pass
             #print(tree)
             #super().visit(tree)
+
+    def __default__(self, tree):
+        pass
 
 
 def build(filename, instructions, variables):
@@ -258,7 +247,6 @@ def build(filename, instructions, variables):
         output_file.write(f".local {','.join(list(variables.keys()))}\n")
 
     output_file.write("enter\n")
-
     for instruction in instructions:
         output_file.write(f"{instruction}\n")
 
