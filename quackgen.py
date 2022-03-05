@@ -237,7 +237,7 @@ class QkGen(Visitor_Recursive):
 
 
 def build(filename, instructions, variables):
-    class_name = path.splitext(filename)[0]
+    class_name = path.splitext(path.basename(filename))[0]
 
     output_file = open(f"./tests/src/{class_name}.asm", "w")
     output_file.write(f".class {class_name}:Obj\n\n")
