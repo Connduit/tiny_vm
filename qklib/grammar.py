@@ -1,22 +1,35 @@
 quack_grammar = """
     ?start: program
         
-    ?program: statement*
+    ?program: class* statement* -> program
+    // ?class: "class" IDENT "(" formal_args ")" [ "extends" IDENT ] class_body -> _class
+    ?class: class_sig class_body -> _class
+    ?class_sig: "class" IDENT "(" formal_args ")" [ "extends" IDENT ] -> class_sig
+    // ?class_body: "{" statement* method* "}" -> class_body
+    ?class_body: "{" statements methods "}" -> class_body
+    ?formal_args: [IDENT ":" IDENT ("," IDENT ":" IDENT)* ] -> formal_args
     
-    ?statement_block: "{" statement+ "}"
+    ?method: "def" IDENT "(" formal_args ")" [":" IDENT] statement_block -> method 
     
-    ?statement: l_op ";"
-        // | NAME [":" NAME] "=" l_op ";"                      -> assignment
-        | NAME ":" NAME "=" l_op ";"                           -> assignment
-        | NAME "=" l_op ";"                                     -> inf_assignment
-        // | "if" l_op statement_block ("elif" l_op statement_block)* ("else" statement_block)?        -> if_block
-        | "if" l_op statement_block ("elif" l_op statement_block)* ["else" statement_block]        -> if_block
-        | "while" l_op statement_block                      -> while_block
+    ?statements: statement*
+    ?methods: method*
+    
+    ?statement_block: "{" statement* "}" -> statement_block
+    
+    ?statement: "if" l_op statement_block ("elif" l_op statement_block)* ["else" statement_block] -> if_block
+        | "while" l_op statement_block -> while_block
+        | assignment
+        | "return" [l_op] ";" -> return_expr
+        | "typecase" l_op "{" type_alt* "}" -> typecase
+        | l_op ";" 
+        
+    ?type_alt: IDENT ":" IDENT statement_block -> type_alt 
+    
+    ?assignment: IDENT [":" IDENT] "=" l_op ";" -> assignment
+        | expr "=" l_op ";" -> store_field
         
     
     
-        
-    // change name to expr?
     // l_op is a logical operator
     ?l_op: r_op
         | l_op "and" r_op                                   -> cond_and
@@ -36,38 +49,47 @@ quack_grammar = """
     ?a_op: a_product
         | a_op "+" a_product                                -> m_add
         | a_op "-" a_product                                -> m_sub
-        | a_op "." NAME "(" args? ")"                       -> m_call
         
+    // actual_args
     ?args: l_op ("," l_op)*                                 -> m_args
         
-    ?a_product: atom
-        | a_product "*" atom                                -> m_mul
-        | a_product "/" atom                                -> m_div
+    ?a_product: expr
+        | a_product "*" expr                                -> m_mul
+        | a_product "/" expr                                -> m_div
         
-    ?atom: NUMBER                       -> lit_num
-        | STRING                        -> lit_str
-        | "none"                     -> lit_nothing
-        // fix NAME -> var?
-        | NAME                          -> var
+    //TODO: switch order of expr and unary_expr?
+    ?expr: unary_expr
+        | expr "." IDENT "(" args? ")" -> m_call
+        | expr "." IDENT -> load_field
+        | IDENT "(" args? ")" -> c_call
+        
+        
+    ?unary_expr: atom
         // change "-" l_op to "-" NUMBER
-        | "-" l_op                      -> m_neg
+        | "-" l_op -> m_neg
+        | "not" l_op                    -> cond_not
+        
+    ?atom: INT                       -> lit_num
+        | STRING                        -> lit_str
+        | IDENT                          -> var
+        | "none"                     -> lit_nothing
         | "true"                        -> lit_true
         | "false"                       -> lit_false
         | "(" l_op ")" 
-        | "not" l_op                    -> cond_not
         
-    ?type: NAME
+        
+        
     STRING: ESCAPED_STRING | LONG_STRING
 
-    // change NAME to IDENT
-    %import common.CNAME -> NAME
-    %import common.NUMBER
+    %import common.CNAME -> IDENT
+    %import common.INT
+    %import common.ESCAPED_STRING
+    %import python.LONG_STRING
+    
     %import common.WS_INLINE
     %import common.NEWLINE
     %import common.C_COMMENT
     %import common.CPP_COMMENT
-    %import common.ESCAPED_STRING
-    %import python.LONG_STRING
     
     %ignore WS_INLINE
     %ignore NEWLINE
