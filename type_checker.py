@@ -11,7 +11,7 @@ class TypeChecker(Visitor_Recursive):
         self.class_name = ""
         self.constructor = False
 
-    def visit(self, tree):
+    def visit(self, tree: Tree):
         changed = False
         if not isinstance(tree, Tree):
             return changed
@@ -20,6 +20,8 @@ class TypeChecker(Visitor_Recursive):
             self._class(tree)
         elif tree.data == "method":
             self.method(tree)
+        elif tree.data == "assignment":
+            self.assignment(tree)
 
         for child in tree.children:
             changed = self.visit(child) or changed
