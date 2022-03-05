@@ -8,32 +8,23 @@ class TypeChecker(Visitor_Recursive):
         with open("./qklib/builtin_methods.json", "r") as f:
             self.types = json.load(f)
         self.variables = dict()
-        #self.changed = False
+        self.class_name = ""
+        self.constructor = False
 
     def visit(self, tree):
         changed = False
         if not isinstance(tree, Tree):
             return changed
 
+        if tree.data == "_class":
+            self._class(tree)
+        elif tree.data == "method":
+            self.method(tree)
+
         for child in tree.children:
             changed = self.visit(child) or changed
 
         return changed or self._call_userfunc(tree)
-
-    def lit_true(self, tree):
-        tree.type = "Bool"
-
-    def lit_false(self, tree):
-        tree.type = "Bool"
-
-    def lit_nothing(self, tree):
-        tree.type = "Nothing"
-
-    def lit_num(self, tree):
-        tree.type = "Int"
-
-    def lit_str(self, tree: Tree):
-        tree.type = "String"
 
     def m_add(self, tree):
         item_type = tree.children[0].children[0].type
@@ -73,50 +64,26 @@ class TypeChecker(Visitor_Recursive):
             print(f"cond_and needs type 'Bool' but {tree.children[1].data} has type '{tree.children[0].type}'")
             exit()
 
-        tree.type = "Bool"
-
     def cond_or(self, tree):
         if not (tree.children[0].type == tree.children[1].type == "Bool"):
             print(f"cond_or needs type 'Bool' but {tree.children[0].data} has type '{tree.children[0].type}'")
             print(f"cond_or needs type 'Bool' but {tree.children[1].data} has type '{tree.children[0].type}'")
             exit()
 
-        tree.type = "Bool"
-
     def cond_not(self, tree):
         if tree.children[0].type != "Bool":
             print(f"cond_not needs type 'Bool' but {tree.children[0].data} has type '{tree.children[0].type}'")
             exit()
 
-        tree.type = "Bool"
-
-    def m_equal(self, tree):
-        tree.type = "Bool"
+    def if_block(self, tree):
         pass
 
-    def m_notequal(self, tree):
-        tree.type = "Bool"
-
-    def m_less(self, tree):
-        tree.type = "Bool"
-
-    def m_more(self, tree):
-        tree.type = "Bool"
-
-    def m_atmost(self, tree):
-        tree.type = "Bool"
-
-    def m_atleast(self, tree):
-        tree.type = "Bool"
-
-    def if_block(self, tree):
-        tree.type = "Bool"
+    def while_block(self, tree):
+        pass
 
     def m_call(self, tree):
-        #print(tree.children[0])
         item = tree.children[0].children[0]
         m_name = tree.children[1]
-        #new_type = self.shared_ancestor(old_type, var_type)
         try:
             tree.type = self.variables[item]
         except KeyError:
@@ -126,38 +93,17 @@ class TypeChecker(Visitor_Recursive):
         try:
             tree.type = self.variables[tree.children[0]]
         except KeyError:
-            tree.type = "unknown"
             print(f"unknown type from {tree.children[0]}")
-            #exit()
-
-    def inf_assignment(self, tree):
-        try:
-            #orig = tree.type
-            orig = tree.children[1].type
-            #var_name = tree.children[0]
-        except AttributeError:
-            orig = ""
-        var_name = tree.children[0]
-        var_value = tree.children[1]
-        old_type = self.variables.get(var_name, "")
-        new_type = self.shared_ancestor(old_type, orig)
-        tree.type = new_type
-        self.variables[var_name] = new_type
+            exit()
 
     def assignment(self, tree):
-        try:
-            orig = tree.type
-            #var_name = tree.children[0]
-        except AttributeError:
-            orig = ""
+        if tree.children[1] is not None:
+            var_type = tree.children[1]
+        else:
+            var_type = tree.children[2].type
 
         var_name = tree.children[0]
-        var_type = tree.children[1]
         var_value = tree.children[2]
-        try:
-            imp_type = tree.children[2].type
-        except AttributeError:
-            imp_type = ""
 
         old_type = self.variables.get(var_name, "")
         shared_type = self.shared_ancestor(old_type, var_type)
@@ -165,8 +111,56 @@ class TypeChecker(Visitor_Recursive):
         tree.type = shared_type
         self.variables[var_name] = shared_type
 
-    def __default__(self, tree):
-        pass
+    #TODO
+    def load_field(self, tree: Tree):
+        obj, field = tree.children
+        try:
+            field_type = self.types[obj.type]["fields"][field]
+        except KeyError:
+            print('bad load')
+            exit()
+
+    #TODO
+    def store_field(self, tree: Tree):
+        obj, field, value = tree.children
+        try:
+            field_type = self.types[obj.type]['fields'][field]
+        except KeyError:
+            print('bad store')
+            #exit()
+
+        #TODO: obj.type should return the class that owns it
+        this_obj = obj.type in self.types and obj == "this"
+        if self.constructor and this_obj:
+            if field.type == "IDENT":
+                field_type = None
+            else:
+                field_type = field.type
+            new_type = self.shared_ancestor(value.type, field_type)
+            try:
+                #TODO: fix obj.type
+                self.types[obj.type]['fields'][field] = new_type
+                tree.type = new_type
+            except KeyError:
+                print("key error")
+                exit()
+
+    def _class(self, tree: Tree):
+        self.class_name = tree.children[0].children[0]
+
+    def method(self, tree: Tree):
+        self.constructor = True if tree.children[0] == "$constructor" else False
+
+        try:
+            self.variables = tree.vars
+        except AttributeError:
+            self.variables = {"this": self.class_name}
+            tree.vars = self.variables
+
+        for ind in range(0, len(tree.children[1].children), 2):
+            var_name = tree.children[1].children[ind]
+            var_type = tree.children[1].children[ind+1]
+            self.variables[var_name] = var_type
 
     def shared_ancestor(self, obj1, obj2):
         if not obj1 and obj2:
@@ -175,5 +169,3 @@ class TypeChecker(Visitor_Recursive):
             return obj1
         elif obj1 == obj2:
             return obj1
-        else:
-            pass
