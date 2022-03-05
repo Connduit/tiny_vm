@@ -1,5 +1,4 @@
-#from qklib.grammar import quack_grammar
-from qklib.wip_grammar import quack_grammar
+from qklib.grammar import quack_grammar
 import quackgen
 from lark import Lark, Transformer, v_args, Token, Tree
 from os import path
@@ -8,14 +7,16 @@ import json
 from type_checker import TypeChecker
 from astbuilder import ASTBuilder
 from var_checker import VarChecker
+from initializer import ClassInitializer, FieldInitializer
+
 
 def cli():
     arg_parser = argparse.ArgumentParser(description="Compiles Quack into ASM")
     arg_parser.add_argument("-f", "--filename", required=True, help="Quack Source File")
     return arg_parser
 
+
 def main():
-    # TODO: raw expressions should be immediately popped from the stack as they will never be used
     args = cli()
     sourceFilename = vars(args.parse_args())["filename"]
     if not path.exists(sourceFilename):
@@ -30,17 +31,14 @@ def main():
     #print(tree.pretty("    "))
     tree = ASTBuilder().transform(tree)
     #print(tree.pretty("    "))
-    #print(tree.pretty("    "))
     #print(tree)
 
     with open("./qklib/builtin_methods.json", "r") as f:
         types = json.load(f)
 
-    #vc = VarChecker()
-    #vc.visit(tree)
+    ClassInitializer(types).visit(tree)
+    FieldInitializer(types).visit(tree)
     VarChecker().visit(tree)
-    #tc = TypeChecker()
-    #tc.visit(tree)
     TypeChecker().visit(tree)
 
     g = quackgen.QkGen(types)
