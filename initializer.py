@@ -85,7 +85,7 @@ class FieldInitializer(Visitor_Recursive):
         free_fields = self.visited - self.exists
         if free_fields:
             print(f"{free_fields} not defined")
-            #exit()
+            exit()
 
         class_name = tree.children[0].children[0]
         fields = self.types[class_name]["fields"]
