@@ -165,9 +165,12 @@ class TypeChecker(Visitor_Recursive):
             self.variables[var_name] = var_type
 
     def shared_ancestor(self, obj1, obj2):
-        if not obj1 and obj2:
+        if obj1 == obj2:
+            return obj1
+        elif not obj1 and obj2:
             return obj2
         elif not obj2 and obj1:
             return obj1
-        elif obj1 == obj2:
-            return obj1
+        else:
+            print(f"{obj1} and {obj2} are bad types")
+            exit()
