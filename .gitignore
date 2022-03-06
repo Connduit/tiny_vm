@@ -93,5 +93,4 @@ Mkfile.old
 dkms.conf
 
 # My junk
-*.qk
 *.asm
